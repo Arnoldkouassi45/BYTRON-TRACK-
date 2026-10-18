@@ -1,5 +1,4 @@
 
-
 name: BYTRON TRACK - Matchs automatiques
 
 on:
@@ -7,54 +6,71 @@ on:
   schedule:
     - cron: "0 */6 * * *"
 
+permissions:
+  contents: write
+
 jobs:
   recuperer-matchs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Recuperer le depot
+        uses: actions/checkout@v4
+
       - name: Recuperer les matchs non commences
         env:
           FOOTBALL_DATA_TOKEN: ${{ secrets.FOOTBALL_DATA_TOKEN }}
         run: |
           if [ -z "$FOOTBALL_DATA_TOKEN" ]; then
-            echo "ERREUR : le secret FOOTBALL_DATA_TOKEN est absent."
+            echo "ERREUR : secret API absent"
             exit 1
           fi
 
           curl --fail --silent --show-error \
             -H "X-Auth-Token: $FOOTBALL_DATA_TOKEN" \
             "https://api.football-data.org/v4/matches?status=SCHEDULED,TIMED" \
-            -o matchs.json
+            -o matchs_bruts.json
 
           python - <<'PY'
           import json
           from datetime import datetime, timezone
 
-          with open("matchs.json", encoding="utf-8") as f:
+          with open("matchs_bruts.json", encoding="utf-8") as f:
               data = json.load(f)
 
           maintenant = datetime.now(timezone.utc)
-          matchs = data.get("matches", [])
           futurs = []
 
-          for match in matchs:
-              date_match = datetime.fromisoformat(
-                  match["utcDate"].replace("Z", "+00:00")
+          for m in data.get("matches", []):
+              date = datetime.fromisoformat(
+                  m["utcDate"].replace("Z", "+00:00")
               )
 
-              if date_match > maintenant:
-                  futurs.append(match)
+              if date > maintenant:
+                  futurs.append({
+                      "date": m["utcDate"],
+                      "competition": m.get("competition", {}).get("name", ""),
+                      "domicile": m.get("homeTeam", {}).get("name", ""),
+                      "exterieur": m.get("awayTeam", {}).get("name", ""),
+                      "statut": "A venir"
+                  })
 
-          futurs.sort(key=lambda m: m["utcDate"])
+          futurs.sort(key=lambda m: m["date"])
 
-          print("BYTRON TRACK - MATCHS A VENIR")
-          print("Nombre de matchs non commencés :", len(futurs))
+          with open("matches.json", "w", encoding="utf-8") as f:
+              json.dump(futurs, f, ensure_ascii=False, indent=2)
 
-          for match in futurs:
-              domicile = match["homeTeam"]["name"]
-              exterieur = match["awayTeam"]["name"]
-              date = match["utcDate"]
-              competition = match.get("competition", {}).get("name", "Inconnue")
-
-              print(f"{date} | {competition} | {domicile} - {exterieur}")
+          print("Matchs a venir :", len(futurs))
           PY
+
+      - name: Publier le fichier des matchs
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add matches.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Mise a jour automatique des matchs"
+            git push
+          else
+            echo "Aucun changement dans les matchs."
+          fi
