@@ -131,6 +131,23 @@
     Aucun gain n'est garanti.</em>
   </p>
 </section>
+
+<script>
+function calculerProbabilites(butsDomicile, butsExterieur) {
+  const total = butsDomicile + butsExterieur;
+
+  if (butsDomicile < 0 || butsExterieur < 0) {
+    return null;
+  }
+
+  return {
+    totalButs: total,
+    plusDe25: total >= 3,
+    lesDeuxMarquent:
+      butsDomicile > 0 && butsExterieur > 0
+  };
+}
+</script>
   
       </html>
       
