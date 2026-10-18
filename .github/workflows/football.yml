@@ -1,5 +1,6 @@
 
-name: BYTRON TRACK - Test automatique
+
+name: BYTRON TRACK - Matchs automatiques
 
 on:
   workflow_dispatch:
@@ -7,8 +8,53 @@ on:
     - cron: "0 */6 * * *"
 
 jobs:
-  test:
+  recuperer-matchs:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Vérifier le fonctionnement
-        run: echo "BYTRON TRACK - Automatisation prête"
+      - name: Recuperer les matchs non commences
+        env:
+          FOOTBALL_DATA_TOKEN: ${{ secrets.FOOTBALL_DATA_TOKEN }}
+        run: |
+          if [ -z "$FOOTBALL_DATA_TOKEN" ]; then
+            echo "ERREUR : le secret FOOTBALL_DATA_TOKEN est absent."
+            exit 1
+          fi
+
+          curl --fail --silent --show-error \
+            -H "X-Auth-Token: $FOOTBALL_DATA_TOKEN" \
+            "https://api.football-data.org/v4/matches?status=SCHEDULED,TIMED" \
+            -o matchs.json
+
+          python - <<'PY'
+          import json
+          from datetime import datetime, timezone
+
+          with open("matchs.json", encoding="utf-8") as f:
+              data = json.load(f)
+
+          maintenant = datetime.now(timezone.utc)
+          matchs = data.get("matches", [])
+          futurs = []
+
+          for match in matchs:
+              date_match = datetime.fromisoformat(
+                  match["utcDate"].replace("Z", "+00:00")
+              )
+
+              if date_match > maintenant:
+                  futurs.append(match)
+
+          futurs.sort(key=lambda m: m["utcDate"])
+
+          print("BYTRON TRACK - MATCHS A VENIR")
+          print("Nombre de matchs non commencés :", len(futurs))
+
+          for match in futurs:
+              domicile = match["homeTeam"]["name"]
+              exterieur = match["awayTeam"]["name"]
+              date = match["utcDate"]
+              competition = match.get("competition", {}).get("name", "Inconnue")
+
+              print(f"{date} | {competition} | {domicile} - {exterieur}")
+          PY
