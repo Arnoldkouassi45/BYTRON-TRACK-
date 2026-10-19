@@ -1,0 +1,44 @@
+[
+  {
+    "date": "2026-10-19T16:30:00Z",
+    "competition": "Serie A",
+    "domicile": "AC Monza",
+    "exterieur": "Cagliari Calcio",
+    "statut": "A venir"
+  },
+  {
+    "date": "2026-10-19T18:45:00Z",
+    "competition": "Serie A",
+    "domicile": "Parma Calcio 1913",
+    "exterieur": "Torino FC",
+    "statut": "A venir"
+  },
+  {
+    "date": "2026-10-19T19:00:00Z",
+    "competition": "Premier League",
+    "domicile": "Tottenham Hotspur FC",
+    "exterieur": "Coventry City FC",
+    "statut": "A venir"
+  },
+  {
+    "date": "2026-10-19T19:00:00Z",
+    "competition": "Primera Division",
+    "domicile": "Getafe CF",
+    "exterieur": "Rayo Vallecano de Madrid",
+    "statut": "A venir"
+  },
+  {
+    "date": "2026-10-19T19:15:00Z",
+    "competition": "Primeira Liga",
+    "domicile": "Sporting Clube de Braga",
+    "exterieur": "Gil Vicente FC",
+    "statut": "A venir"
+  },
+  {
+    "date": "2026-10-19T23:00:00Z",
+    "competition": "Campeonato Brasileiro Série A",
+    "domicile": "SC Corinthians Paulista",
+    "exterieur": "EC Vitória",
+    "statut": "A venir"
+  }
+]
