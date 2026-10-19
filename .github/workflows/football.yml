@@ -29,7 +29,7 @@ jobs:
 
           curl --fail --silent --show-error \
             -H "X-Auth-Token: $API_TOKEN" \
-            "https://api.football-data.org/v4/matches?status=SCHEDULED" \
+            "https://api.football-data.org/v4/matches" \
             -o matchs_bruts.json
 
           python - <<'PY'
